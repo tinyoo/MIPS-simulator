@@ -110,7 +110,7 @@ void load_program(uint8_t *mem, size_t memsize UNUSED, int startaddr, const char
         mem[startaddr + offset + 1] = (instruction >> 8) & 0xFF;
         mem[startaddr + offset + 2] = (instruction >> 16) & 0xFF;
         mem[startaddr + offset + 3] = (instruction >> 24) & 0xFF;
-        if ( (instruction & 0xFF) == 0x0d  ) {
+        if ( ((instruction & 0xFF) == 0x0d) && (((instruction >> 24) & 0xFF) == 0x00)  ) {
             endflag = 1;
             endaddr = startaddr + offset;
         }

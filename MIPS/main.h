@@ -51,6 +51,8 @@ void store(Byte *memory,Address address,Alignment alignment,Word value, int);
 Word load(Byte *memory,Address address,Alignment alignment, int);
 
 /* see part3.c */
+int allEmpty();
+int judgePrevLS(Instruction *, int);
 void callBack(Instruction *, int *);
 int judgeReady(Instruction *, Processor *);
 int branchReady(Instruction *);

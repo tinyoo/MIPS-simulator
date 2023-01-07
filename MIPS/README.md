@@ -37,12 +37,13 @@ The file simulation.txt is the reference, and you can run "diff -b output.txt si
 │   ├── code
 │   │   └── sample.input
 │	├── out
-│   │   │── output.txt
-│   │   └── test.dump
-│   ├── ref_dissam
-│   │   └── sample.solution
-│   └── ref_sim
-│       └── simulation.solution
+│   │   │── output.disasm
+│   │   │── output.score
+│   │   └── output.trace
+│   └── ref
+│       │── sample.disasm
+│       │── sample.score
+│       └── sample.trace
 ├── sample.txt
 ├── output.txt
 ├── simulation.txt

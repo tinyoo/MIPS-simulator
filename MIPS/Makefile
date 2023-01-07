@@ -2,7 +2,7 @@ SOURCES := utils.c part1.c part2.c part3.c main.c
 
 HEADERS := types.h utils.h main.h
 
-ASM_TESTS := sample
+ASM_TESTS := sample single
 
 all: MIPSsim part1 part2 part3
 	@echo "=============All tests finished============="
@@ -20,27 +20,27 @@ out:
 part1: MIPSsim $(addsuffix _disasm, $(ASM_TESTS))
 	@echo "---------Disassembly Tests Complete---------"
 
-%_disasm: mipscode/code/%.input mipscode/ref/%.disasm MIPSsim
-	@./MIPSsim -d $< > mipscode/out/output.disasm
-	@diff -b $(word 2, $^) mipscode/out/output.disasm && echo "$@ TEST PASSED!" || echo "$@ TEST FAILED!"
+%_disasm: mipscode/code/%.input mipscode/ref/%_disasm.solution MIPSsim
+	@./MIPSsim -d $< > mipscode/out/disasm.output
+	@diff -b -w -B $(word 2, $^) mipscode/out/disasm.output && echo "$@ TEST PASSED!" || echo "$@ TEST FAILED!"
 
 # Part 2 Tests
 
 part2: MIPSsim $(addsuffix _execute, $(ASM_TESTS))
 	@echo "-----------Execute Tests Complete-----------"
 
-%_execute: mipscode/code/%.input mipscode/ref/%.trace MIPSsim
-	@./MIPSsim -t $< > mipscode/out/output.trace
-	@diff $(word 2, $^) mipscode/out/output.trace && echo "$@ TEST PASSED!" || echo "$@ TEST FAILED!"
+%_execute: mipscode/code/%.input mipscode/ref/%_trace.solution MIPSsim
+	@./MIPSsim -t $< > mipscode/out/trace.output
+	@diff -b -w -B $(word 2, $^) mipscode/out/trace.output && echo "$@ TEST PASSED!" || echo "$@ TEST FAILED!"
 
 # Part 3 Tests
 
 part3: MIPSsim $(addsuffix _simulate, $(ASM_TESTS))
 	@echo "-----------Simulation Tests Complete-----------"
 
-%_simulate: mipscode/code/%.input mipscode/ref/%.score MIPSsim
-	@./MIPSsim -r $< > mipscode/out/output.score
-	@diff -b $(word 2, $^) mipscode/out/output.score && echo "$@ TEST PASSED!" || echo "$@ TEST FAILED!"
+%_simulate: mipscode/code/%.input mipscode/ref/%_score.solution MIPSsim
+	@./MIPSsim -r $< > mipscode/out/score.output
+	@diff -b $(word 2, $^) mipscode/out/score.output && echo "$@ TEST PASSED!" || echo "$@ TEST FAILED!"
 
 
 clean:

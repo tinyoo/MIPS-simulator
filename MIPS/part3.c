@@ -114,6 +114,7 @@ void Issue(Processor *p UNUSED) {   /* PIB -> Queue */
 	int i = 0, j = 0, pt = 0;
 	int len = pIB.tlen;
 	int tm = pMQ.len;
+	/*int flag = 1;*/
 	Instruction inst;
 
 	/* Q[0] is SW */
@@ -130,9 +131,14 @@ void Issue(Processor *p UNUSED) {   /* PIB -> Queue */
 	
 	while (i < len) {
 		inst = pIB.preIssueBuffer[pt];
+		/*
+		flag = 1;
+		if ( !(isInMEM(&inst)) && judgePrevLS(&inst, i))
+			flag = 0;
+		*/
 		
 		/*printf("%d\n", rrs[inst.itype.rt]);*/
-		if (judgeReady(&inst, p)) {	
+		if (judgeReady(&inst, p) /*&& (flag == 1)*/) {
 			if ( isInALU(&inst) && (pALU.len < 2) ) {
 				pALU.preALUQueue[pALU.tlen] = inst;
 				pALU.tlen += 1;
@@ -170,13 +176,33 @@ void Issue(Processor *p UNUSED) {   /* PIB -> Queue */
 				setFi(&inst, p);
 			}
 		}
-		else {
+		else if (!judgeReady(&inst, p)){
 			if (inst.opcode.opcode != 0x23)
 				setFi(&inst, p);
 			pt += 1;
 		}
 		i++;
 	}
+}
+
+int judgePrevLS(Instruction *inst, int j) {
+	int i = 0;
+	int flag = 0;
+	if ((inst->opcode.opcode != 0x2b) && (inst->opcode.opcode != 0x23)) {
+		for (i = 0; i < j; ++i) {
+			if (pIB.preIssueBuffer[i].opcode.opcode == 0x2b) {
+				if (getFi(&pIB.preIssueBuffer[i]) == getFi(inst))
+					flag += 1;
+			}
+			if (pIB.preIssueBuffer[i].opcode.opcode == 0x23) {
+				if (getFi(&pIB.preIssueBuffer[i]) == getFi(inst) ||
+					getFj(&pIB.preIssueBuffer[i]) == getFi(inst) ||
+					getFk(&pIB.preIssueBuffer[i]) == getFi(inst))
+					flag += 1;
+			}
+		}
+	}
+	return (flag != 0);
 }
 
 /* fetch to fill pIB */
@@ -235,6 +261,9 @@ void IF(Instruction inst1, Instruction inst2, Processor *p UNUSED) {
 				tmpj = inst1;
 				p -> PC += 0;
 			}
+			else if (isBranch(&inst1)) {
+				waitingInst = inst1;
+			}
 			else if (!isBREAK(&inst1) && isBREAK(&inst2)) {
 				jflag = 1;
 				pIB.preIssueBuffer[pIB.tlen] = inst1;
@@ -242,8 +271,23 @@ void IF(Instruction inst1, Instruction inst2, Processor *p UNUSED) {
 				tmpj = inst2;
 				p -> PC += 0;
 			}
+			else if (isBREAK(&inst1)) {
+				if (allEmpty()) {
+					jflag = 1;
+					execute_instruction(inst1, p, memory);
+					tmpj = inst1;
+					p -> PC += 0;
+				}
+				else {
+					waitingInst = inst1;
+				}
+			}
 		}
 	}
+}
+
+int allEmpty() {
+	return (pIB.len == 0 && pALU.len == 0 && pALUB.len == 0 && isNOP(&postALUBuffer) && isNOP(&postMEMBuffer) && isNOP(&postALUBBuffer));
 }
 
 void updateExe(Processor *p UNUSED) {
@@ -267,6 +311,15 @@ void updateWaiting(Processor *p UNUSED) {
 			execute_instruction(executedInst, p, memory);
 		}
 	}
+	else if (isBREAK(&waitingInst)) {
+		if (allEmpty()) {
+			jflag = 1;
+			executedInst = waitingInst;
+			waitingInst = nop;
+			execute_instruction(waitingInst, p, memory);
+			tmpj = waitingInst;
+		}
+	}
 }
 
 void update() {
@@ -288,6 +341,10 @@ void callBack(Instruction *inst, int *flag) {
 		if ( (getFi(&pIB.preIssueBuffer[i]) == getFj(inst)) 
 			|| (getFi(&pIB.preIssueBuffer[i]) == getFk(inst)) )
 			*flag += 1;
+		if (pIB.preIssueBuffer[i].opcode.opcode == 0x2b || pIB.preIssueBuffer[i].opcode.opcode == 0x23) {
+			if (getFi(&pIB.preIssueBuffer[i]) == getFi(inst))
+				*flag += 1;
+		}
 	}
 	for (i = 0; i < pALU.len; ++i) {
 		if ( (getFi(&pALU.preALUQueue[i]) == getFj(inst)) 

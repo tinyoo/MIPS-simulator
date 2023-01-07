@@ -90,7 +90,7 @@ void simulate(Processor *processor, int print) {
     inst1.bits = load(memory, processor->PC, LENGTH_WORD, 1);
     inst2.bits = load(memory, processor->PC+4, LENGTH_WORD, 1);
 
-    if (isBREAK(&inst1))
+    if (isBREAK(&inst1) && allEmpty())
         flag = 1;
 
     /* enforce $0 being hard-wired to 0 */
@@ -199,7 +199,7 @@ void simulate(Processor *processor, int print) {
         }
         /*printf("\n"); */
     }
-    if (isBREAK(&inst2))
+    if (isBREAK(&inst2) && !isJ(&inst1) && !isBranch(&inst1) && allEmpty())
         flag = 1;
 
     if (flag == 1)
@@ -234,7 +234,7 @@ void execute(Processor *processor, int print) {
         cycle += 1;
         printf("--------------------\n");
         printf("Cycle:%d\t%d\t", cycle, tmpp);
-        decode_instruction(instruction,2);    /*  */
+        decode_instruction(instruction,1);    /*  */
         printf("\nRegisters\n");
         printf("R00:\t");
         for(i=0; i<15; i++) {
@@ -252,9 +252,9 @@ void execute(Processor *processor, int print) {
         for(k=endaddr+4; k<4*countline+startaddr; k+=(8*4)) {
             printf("%d:\t", k);
             for (i=0; i<7; ++i) {
-                printf("%d\t", bitSigner(load(memory, k+i*4, LENGTH_BYTE, 0), 8));
+                printf("%d\t", bitSigner(load(memory, k+i*4, LENGTH_WORD, 0), 16));
             }
-            printf("%d\n", bitSigner(load(memory, k+7*4, LENGTH_BYTE, 0), 8));
+            printf("%d\n", bitSigner(load(memory, k+7*4, LENGTH_WORD, 0), 16));
         }
         printf("\n"); 
     }

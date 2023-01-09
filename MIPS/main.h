@@ -52,14 +52,6 @@ Word load(Byte *memory,Address address,Alignment alignment, int);
 
 /* see part3.c */
 int allEmpty();
-int judgePrevLS(Instruction *, int);
-void callBack(Instruction *, int *);
-int judgeReady(Instruction *, Processor *);
-int branchReady(Instruction *);
-void setFi(Instruction *, Processor *);
-int getFi(Instruction *);
-int getFj(Instruction *);
-int getFk(Instruction *);
 void IF(Instruction, Instruction, Processor *);
 void Issue(Processor *);
 void Exe(Processor *);

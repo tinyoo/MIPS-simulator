@@ -52,6 +52,15 @@ Instruction tmpj;
 
 Byte *memory;
 
+int judgePrevLS(Instruction *, int);
+void callBack(Instruction *, int *);
+int judgeReady(Instruction *, Processor *);
+int branchReady(Instruction *);
+void setFi(Instruction *, Processor *);
+int getFi(Instruction *);
+int getFj(Instruction *);
+int getFk(Instruction *);
+
 
 /* exe post buffers */
 void WB(Processor *p UNUSED) {
